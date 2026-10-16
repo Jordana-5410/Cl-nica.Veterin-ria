@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react'
+import SelectMenu, { type SelectOption } from '../components/SelectMenu'
 import { demoDataKeys, useDemoData } from '../lib/demoPersistence'
 
 type CatalogItem = {
@@ -34,6 +35,8 @@ const initialProposals: Proposal[] = [
 ]
 
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+const proposalStatuses: ProposalStatus[] = ['Rascunho', 'Enviada', 'Aprovada', 'Recusada']
+const proposalStatusOptions: SelectOption<ProposalStatus>[] = proposalStatuses.map((status) => ({ value: status, label: status }))
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -136,9 +139,12 @@ export default function BudgetProposals() {
           </div>
           <div className="catalog-add-row">
             <label className="catalog-select">Item ou serviço
-              <select value={selectedItemId} onChange={(event) => setSelectedItemId(event.target.value)}>
-                {catalog.map((item) => <option key={item.id} value={item.id}>{item.name} — {currency.format(item.price)}</option>)}
-              </select>
+              <SelectMenu
+                ariaLabel="Item ou serviço"
+                value={selectedItemId}
+                options={catalog.map((item) => ({ value: String(item.id), label: `${item.name} — ${currency.format(item.price)}` }))}
+                onChange={setSelectedItemId}
+              />
             </label>
             <label className="quantity-select">Qtd.
               <input type="number" min="1" step="1" required value={itemQuantity} onChange={(event) => setItemQuantity(event.target.value)} />
@@ -174,10 +180,10 @@ export default function BudgetProposals() {
             <tbody>
               {proposals.map((proposal) => (
                 <tr key={proposal.id}>
-                  <td><strong>#{proposal.id}</strong><small className="table-secondary">{proposal.createdAt} · {proposal.lines.length} itens</small></td>
-                  <td><strong>{proposal.pet}</strong><small className="table-secondary">{proposal.client}</small></td>
-                  <td><strong>{currency.format(proposal.total)}</strong></td>
-                  <td><select className={`status-select status-select--${proposal.status.toLowerCase()}`} aria-label={`Situação da proposta ${proposal.id}`} value={proposal.status} onChange={(event) => updateStatus(proposal.id, event.target.value as ProposalStatus)}><option>Rascunho</option><option>Enviada</option><option>Aprovada</option><option>Recusada</option></select></td>
+                  <td data-label="Proposta"><strong>#{proposal.id}</strong><small className="table-secondary">{proposal.createdAt} · {proposal.lines.length} itens</small></td>
+                  <td data-label="Pet / Tutor"><strong>{proposal.pet}</strong><small className="table-secondary">{proposal.client}</small></td>
+                  <td data-label="Subtotal"><strong>{currency.format(proposal.total)}</strong></td>
+                  <td data-label="Situação"><SelectMenu className={`status-select status-select--${proposal.status.toLowerCase()}`} ariaLabel={`Situação da proposta ${proposal.id}`} value={proposal.status} options={proposalStatusOptions} onChange={(status) => updateStatus(proposal.id, status)} /></td>
                 </tr>
               ))}
             </tbody>

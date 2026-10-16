@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react'
+import SelectMenu, { type SelectOption } from '../components/SelectMenu'
 import { demoDataKeys, useDemoData } from '../lib/demoPersistence'
 
 type StockItem = {
@@ -27,6 +28,8 @@ const initialItems: StockItem[] = [
 ]
 
 const categories = ['Medicamentos', 'Higiene e estética', 'Alimentação', 'Materiais clínicos']
+const categoryOptions: SelectOption<string>[] = categories.map((category) => ({ value: category, label: category }))
+const categoryFilterOptions: SelectOption<string>[] = [{ value: 'Todas', label: 'Todas' }, ...categoryOptions]
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -139,7 +142,7 @@ export default function InventoryControl() {
         <form className="module-form" onSubmit={addItem}>
           <div className="module-form-grid">
             <label>Nome do item<input required value={itemName} onChange={(event) => setItemName(event.target.value)} placeholder="Ex.: Luvas descartáveis" /></label>
-            <label>Categoria<select value={itemCategory} onChange={(event) => setItemCategory(event.target.value)}>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
+            <label>Categoria<SelectMenu ariaLabel="Categoria do item" value={itemCategory} options={categoryOptions} onChange={setItemCategory} /></label>
             <label>Unidade de medida<input required value={itemUnit} onChange={(event) => setItemUnit(event.target.value)} placeholder="unidades" /></label>
             <label>Quantidade inicial<input required type="number" min="0" step="1" value={itemQuantity} onChange={(event) => setItemQuantity(event.target.value)} /></label>
             <label>Nível mínimo<input required type="number" min="0" step="1" value={itemMinimum} onChange={(event) => setItemMinimum(event.target.value)} /></label>
@@ -154,7 +157,7 @@ export default function InventoryControl() {
           <span className={`module-count ${lowStockCount ? 'module-count--warning' : ''}`}>{lowStockCount} abaixo do mínimo</span>
         </div>
         <div className="inventory-toolbar">
-          <label className="compact-filter"><span>Categoria</span><select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option>Todas</option>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
+          <label className="compact-filter"><span>Categoria</span><SelectMenu ariaLabel="Filtrar por categoria" value={categoryFilter} options={categoryFilterOptions} onChange={setCategoryFilter} /></label>
           <span className="inventory-toolbar-count">{filteredItems.length} itens</span>
         </div>
         {errorMessage && <p className="module-error" role="alert">{errorMessage}</p>}
@@ -166,10 +169,10 @@ export default function InventoryControl() {
                 const isLow = item.quantity <= item.minimum
                 return (
                   <tr key={item.id}>
-                    <td><strong>{item.name}</strong><small className="table-secondary">{item.unit}</small></td>
-                    <td>{item.category}</td>
-                    <td><strong className={isLow ? 'stock-balance stock-balance--low' : 'stock-balance'}>{item.quantity} {item.unit}</strong><small className="table-secondary">Mínimo: {item.minimum}</small>{isLow && <span className="low-stock-badge">Repor</span>}</td>
-                    <td><div className="stock-movement-controls"><input aria-label={`Quantidade para movimentar de ${item.name}`} type="number" min="1" step="1" value={movementQuantities[item.id] ?? '1'} onChange={(event) => setMovementQuantities((current) => ({ ...current, [item.id]: event.target.value }))} /><button type="button" className="movement-button movement-button--in" onClick={() => moveStock(item, 'Entrada')}>+ Entrada</button><button type="button" className="movement-button movement-button--out" onClick={() => moveStock(item, 'Saída')}>− Saída</button></div></td>
+                    <td data-label="Insumo"><strong>{item.name}</strong><small className="table-secondary">{item.unit}</small></td>
+                    <td data-label="Categoria">{item.category}</td>
+                    <td data-label="Saldo / mínimo"><strong className={isLow ? 'stock-balance stock-balance--low' : 'stock-balance'}>{item.quantity} {item.unit}</strong><small className="table-secondary">Mínimo: {item.minimum}</small>{isLow && <span className="low-stock-badge">Repor</span>}</td>
+                    <td data-label="Movimentar"><div className="stock-movement-controls"><input aria-label={`Quantidade para movimentar de ${item.name}`} type="number" min="1" step="1" value={movementQuantities[item.id] ?? '1'} onChange={(event) => setMovementQuantities((current) => ({ ...current, [item.id]: event.target.value }))} /><button type="button" className="movement-button movement-button--in" onClick={() => moveStock(item, 'Entrada')}>+ Entrada</button><button type="button" className="movement-button movement-button--out" onClick={() => moveStock(item, 'Saída')}>− Saída</button></div></td>
                   </tr>
                 )
               })}

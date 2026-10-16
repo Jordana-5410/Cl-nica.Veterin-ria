@@ -1510,10 +1510,6 @@ tbody tr:last-child td {
 }
 
 @media (max-width: 680px) {
-  body {
-    min-width: 360px;
-  }
-
   .sidebar {
     z-index: 12;
     width: 270px;
@@ -1731,6 +1727,44 @@ tbody tr:last-child td {
   }
 }
 
+
+@media (max-width: 360px) {
+  .topbar {
+    gap: 6px;
+    padding: 0 10px;
+  }
+
+  .mobile-menu {
+    width: 30px;
+    flex: 0 0 30px;
+  }
+
+  .breadcrumb {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .breadcrumb > span,
+  .breadcrumb > svg {
+    display: none;
+  }
+
+  .breadcrumb strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .topbar-actions {
+    flex: 0 0 auto;
+    gap: 4px;
+  }
+
+  .topbar-avatar {
+    display: none;
+  }
+}
 
 /* Acessibilidade: respeita a preferência por menos animações */
 @media (prefers-reduced-motion: reduce) {
