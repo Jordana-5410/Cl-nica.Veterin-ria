@@ -18,7 +18,10 @@ button {
   display: flex;
   width: 252px;
   flex-direction: column;
+<<<<<<< HEAD
   overflow-y: auto;
+=======
+>>>>>>> 6122c42e41503de134608c040796f199560bc245
   padding: 29px 17px 16px;
   color: #fff;
   background: var(--brand-teal);
@@ -125,6 +128,39 @@ button {
   margin-top: auto;
 }
 
+<<<<<<< HEAD
+=======
+.help-card {
+  padding: 15px 14px 14px;
+  border: 1px solid #45a6a1;
+  border-radius: 11px;
+  background: #007878;
+}
+
+.help-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  margin-bottom: 12px;
+  color: var(--brand-brown);
+  border-radius: 9px;
+  background: var(--brand-orange);
+}
+
+.help-card strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.help-card p {
+  margin: 5px 0 0;
+  color: #F1D79E;
+  font-size: 10px;
+}
+
+>>>>>>> 6122c42e41503de134608c040796f199560bc245
 .profile {
   display: flex;
   width: 100%;
