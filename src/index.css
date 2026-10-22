@@ -1,0 +1,71 @@
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #3E3023;
+  background: #F1D79E;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-weight: 400;
+
+  /* Paleta oficial Zenvet */
+  --brand-orange: #F1D79E;
+  --brand-teal: #008B8B;
+  --brand-brown: #6F4E37;
+
+  /* Cores de apoio */
+  --ink: #3E3023;
+  --muted: #62574B;
+  --brand-dark: #008B8B;
+  --brand-sky: #F1D79E;
+  --brand-cream: #F1D79E;
+  --green: var(--brand-teal);
+  --green-dark: #006666;
+  --line: #E5D3AD;
+  --surface: #FFFCF5;
+
+  /* Estados e acessibilidade */
+  --focus-color: #6F4E37;
+  --success: #008B8B;
+  --warning: #6F4E37;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 0;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #3E3023;
+  background: #F1D79E;
+}
