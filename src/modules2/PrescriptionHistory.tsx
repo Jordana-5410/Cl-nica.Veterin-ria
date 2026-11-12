@@ -1,6 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { DatePicker } from '../components/DateTimePicker'
+import SelectMenu, { type SelectOption } from '../components/SelectMenu'
 import { demoDataKeys, useDemoData } from '../Data saving/demoPersistence'
+import { clinicProfessionals } from '../modules1/clinicDefaults'
 
 type Prescription = {
   id: number
@@ -16,6 +18,37 @@ type Prescription = {
   duration: string
   instructions: string
 }
+
+const otherMedicationValue = '__other_medication__'
+const otherDiagnosisValue = '__other_diagnosis__'
+const otherRouteValue = '__other_route__'
+const diagnosisOptions: SelectOption<string>[] = [
+  { value: 'Consulta e avaliação clínica', label: 'Consulta e avaliação clínica' },
+  { value: 'Prevenção', label: 'Prevenção' },
+  { value: 'Acompanhamento veterinário', label: 'Acompanhamento veterinário' },
+  { value: 'Tratamento', label: 'Tratamento' },
+  { value: 'Pós-operatório', label: 'Pós-operatório' },
+  { value: 'Controle de parasitas', label: 'Controle de parasitas' },
+  { value: otherDiagnosisValue, label: 'Outro…' },
+]
+const medicationOptions: SelectOption<string>[] = [
+  { value: '', label: 'Selecione um medicamento' },
+  { value: 'Amoxicilina + Clavulanato', label: 'Antibióticos · Amoxicilina + Clavulanato' },
+  { value: 'Cefalexina', label: 'Antibióticos · Cefalexina' },
+  { value: 'Meloxicam', label: 'Anti-inflamatórios e analgésicos · Meloxicam' },
+  { value: 'Carprofeno', label: 'Anti-inflamatórios e analgésicos · Carprofeno' },
+  { value: 'Fenbendazol', label: 'Antiparasitários · Fenbendazol' },
+  { value: 'Praziquantel', label: 'Antiparasitários · Praziquantel' },
+  { value: 'Fipronil', label: 'Antiparasitários · Fipronil' },
+  { value: 'Clorexidina', label: 'Medicamentos dermatológicos · Clorexidina' },
+  { value: 'Miconazol', label: 'Medicamentos dermatológicos · Miconazol' },
+  { value: otherMedicationValue, label: 'Outro medicamento…' },
+]
+const routeOptions: SelectOption<string>[] = [
+  { value: 'Oral', label: 'Oral' },
+  { value: 'Tópica', label: 'Tópica' },
+  { value: 'Outra via', label: 'Outra via…' },
+]
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -55,17 +88,21 @@ export default function PrescriptionHistory() {
   )
   const [pet, setPet] = useState('')
   const [guardian, setGuardian] = useState('')
-  const [veterinarian, setVeterinarian] = useState('')
+  const [veterinarian, setVeterinarian] = useState(clinicProfessionals[0])
   const [date, setDate] = useState(() => localDateInputValue(new Date()))
   const [diagnosis, setDiagnosis] = useState('')
+  const [customDiagnosis, setCustomDiagnosis] = useState('')
   const [medication, setMedication] = useState('')
+  const [customMedication, setCustomMedication] = useState('')
   const [dosage, setDosage] = useState('')
   const [route, setRoute] = useState('')
+  const [customRoute, setCustomRoute] = useState('')
   const [frequency, setFrequency] = useState('')
   const [duration, setDuration] = useState('')
   const [instructions, setInstructions] = useState('')
   const [search, setSearch] = useState('')
   const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [formError, setFormError] = useState('')
 
   const filteredPrescriptions = useMemo(() => prescriptions
     .filter((prescription) => `${prescription.pet} ${prescription.guardian} ${prescription.medication}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
@@ -74,31 +111,48 @@ export default function PrescriptionHistory() {
 
   function addPrescription(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const medicationName = medication === otherMedicationValue ? customMedication.trim() : medication
+    const diagnosisValue = diagnosis === otherDiagnosisValue ? customDiagnosis.trim() : diagnosis
+    const routeValue = route === otherRouteValue ? customRoute.trim() : route
+    if (!medicationName) {
+      setFormError(medication === otherMedicationValue
+        ? 'Informe o nome do medicamento.'
+        : 'Selecione um medicamento.')
+      return
+    }
+    if (!diagnosisValue || !routeValue) {
+      setFormError('Informe o diagnóstico/finalidade e a via de administração.')
+      return
+    }
     setPrescriptions((current) => [{
       id: Date.now(),
       pet: pet.trim(),
       guardian: guardian.trim(),
       veterinarian: veterinarian.trim(),
       date,
-      diagnosis: diagnosis.trim(),
-      medication: medication.trim(),
+      diagnosis: diagnosisValue,
+      medication: medicationName,
       dosage: dosage.trim(),
-      route: route.trim(),
+      route: routeValue,
       frequency: frequency.trim(),
       duration: duration.trim(),
       instructions: instructions.trim(),
     }, ...current])
     setPet('')
     setGuardian('')
-    setVeterinarian('')
+    setVeterinarian(clinicProfessionals[0])
     setDate(localDateInputValue(new Date()))
     setDiagnosis('')
+    setCustomDiagnosis('')
     setMedication('')
+    setCustomMedication('')
     setDosage('')
     setRoute('')
+    setCustomRoute('')
     setFrequency('')
     setDuration('')
     setInstructions('')
+    setFormError('')
   }
 
   function removePrescription(id: number) {
@@ -115,16 +169,47 @@ export default function PrescriptionHistory() {
           <div className="module-form-grid">
             <label>Animal<input required value={pet} onChange={(event) => setPet(event.target.value)} placeholder="Nome do animal" /></label>
             <label>Tutor<input value={guardian} onChange={(event) => setGuardian(event.target.value)} placeholder="Nome do tutor" /></label>
-            <label>Médico-veterinário<input required value={veterinarian} onChange={(event) => setVeterinarian(event.target.value)} placeholder="Nome do profissional" /></label>
+            <label>Médico-veterinário<SelectMenu ariaLabel="Médico-veterinário" value={veterinarian} options={clinicProfessionals.map((professional) => ({ value: professional, label: professional }))} onChange={setVeterinarian} /></label>
             <DatePicker label="Data da receita" value={date} onChange={setDate} />
-            <label>Diagnóstico / finalidade<input required value={diagnosis} onChange={(event) => setDiagnosis(event.target.value)} placeholder="Diagnóstico ou finalidade clínica" /></label>
-            <label>Medicamento<input required value={medication} onChange={(event) => setMedication(event.target.value)} placeholder="Nome do medicamento" /></label>
+            <label>Diagnóstico / finalidade<SelectMenu ariaLabel="Diagnóstico ou finalidade" value={diagnosis} options={[
+              { value: '', label: 'Selecione uma finalidade' },
+              ...diagnosisOptions,
+            ]} onChange={(value) => {
+              setDiagnosis(value)
+              if (value !== otherDiagnosisValue) setCustomDiagnosis('')
+              setFormError('')
+            }} /></label>
+            {diagnosis === otherDiagnosisValue && <label>Outra finalidade<input required value={customDiagnosis} onChange={(event) => {
+              setCustomDiagnosis(event.target.value)
+              setFormError('')
+            }} placeholder="Descreva a finalidade" /></label>}
+            <label>Medicamento<SelectMenu ariaLabel="Medicamento prescrito" value={medication} options={medicationOptions} onChange={(value) => {
+              setMedication(value)
+              if (value !== otherMedicationValue) setCustomMedication('')
+              setFormError('')
+            }} /></label>
+            {medication === otherMedicationValue && <label>Nome do medicamento<input required value={customMedication} onChange={(event) => {
+              setCustomMedication(event.target.value)
+              setFormError('')
+            }} placeholder="Digite o nome do medicamento" /></label>}
             <label>Dosagem prescrita<input required value={dosage} onChange={(event) => setDosage(event.target.value)} placeholder="Conforme prescrição profissional" /></label>
-            <label>Via de administração<input required value={route} onChange={(event) => setRoute(event.target.value)} placeholder="Ex.: oral, tópica" /></label>
+            <label>Via de administração<SelectMenu ariaLabel="Via de administração" value={route} options={[
+              { value: '', label: 'Selecione uma via' },
+              ...routeOptions,
+            ]} onChange={(value) => {
+              setRoute(value === 'Outra via' ? otherRouteValue : value)
+              if (value !== 'Outra via') setCustomRoute('')
+              setFormError('')
+            }} /></label>
+            {route === otherRouteValue && <label>Outra via de administração<input required value={customRoute} onChange={(event) => {
+              setCustomRoute(event.target.value)
+              setFormError('')
+            }} placeholder="Informe a via prescrita" /></label>}
             <label>Frequência<input required value={frequency} onChange={(event) => setFrequency(event.target.value)} placeholder="Conforme prescrição profissional" /></label>
             <label>Duração<input required value={duration} onChange={(event) => setDuration(event.target.value)} placeholder="Período indicado" /></label>
             <label className="field-full">Orientações adicionais<textarea value={instructions} onChange={(event) => setInstructions(event.target.value)} rows={3} placeholder="Cuidados e orientações registrados pelo profissional" /></label>
           </div>
+          {formError && <p className="module-error" role="alert">{formError}</p>}
           <div className="module-form-footer"><button className="module-button module-button--primary" type="submit">Salvar receita</button></div>
         </form>
       </section>

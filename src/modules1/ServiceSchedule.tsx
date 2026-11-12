@@ -1,30 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import SelectMenu, { type SelectOption } from '../components/SelectMenu'
 import { demoDataKeys, useDemoData } from '../Data saving/demoPersistence'
-
-type ServiceStatus = 'Agendado' | 'Em Atendimento' | 'Concluído'
-type Appointment = {
-  id: number
-  pet: string
-  service: string
-  professional: string
-  resource: string
-  startsAt: string
-  status: ServiceStatus
-}
-
-const initialAppointments: Appointment[] = [
-  { id: 1, pet: 'Luna · Camila Oliveira', service: 'Consulta veterinária', professional: 'Dra. Marina Costa', resource: 'Consultório 1', startsAt: '2026-10-15T09:00', status: 'Em Atendimento' },
-  { id: 2, pet: 'Thor · Rafael Mendes', service: 'Vacinação V10', professional: 'Dr. Lucas Almeida', resource: 'Consultório 2', startsAt: '2026-10-15T09:30', status: 'Agendado' },
-  { id: 3, pet: 'Mel · Fernanda Costa', service: 'Banho e tosa', professional: 'Dra. Bia Santos', resource: 'Sala de estética', startsAt: '2026-10-15T10:15', status: 'Agendado' },
-]
+import { clinicProfessionals, initialAppointments, type Appointment, type ServiceStatus } from './clinicDefaults'
 
 const statusOptions: ServiceStatus[] = ['Agendado', 'Em Atendimento', 'Concluído']
 const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const hours = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, '0'))
 const minutes = Array.from({ length: 60 }, (_, minute) => String(minute).padStart(2, '0'))
 const serviceOptions = ['Consulta veterinária', 'Vacinação', 'Exame', 'Banho e tosa', 'Retorno']
-const professionalOptions = ['Dra. Marina Costa', 'Dr. Lucas Almeida', 'Dra. Bianca Santos']
 const resourceOptions = ['Consultório 1', 'Consultório 2', 'Sala de estética', 'Sala de exames']
 const filterOptions: SelectOption<string>[] = ['Todos', ...statusOptions].map((status) => ({ value: status, label: status }))
 const appointmentStatusOptions: SelectOption<ServiceStatus>[] = statusOptions.map((status) => ({ value: status, label: status }))
@@ -139,7 +122,7 @@ export default function ServiceSchedule() {
           <div className="module-form-grid">
             <label>Pet e tutor<input required value={pet} onChange={(event) => setPet(event.target.value)} placeholder="Ex.: Bento · Ana Souza" /></label>
             <label>Serviço<SelectMenu ariaLabel="Serviço" value={service} options={serviceOptions.map((option) => ({ value: option, label: option }))} onChange={setService} /></label>
-            <label>Profissional<SelectMenu ariaLabel="Profissional" value={professional} options={professionalOptions.map((option) => ({ value: option, label: option }))} onChange={setProfessional} /></label>
+            <label>Profissional<SelectMenu ariaLabel="Profissional" value={professional} options={clinicProfessionals.map((option) => ({ value: option, label: option }))} onChange={setProfessional} /></label>
             <label>Recurso<SelectMenu ariaLabel="Recurso" value={resource} options={resourceOptions.map((option) => ({ value: option, label: option }))} onChange={setResource} /></label>
             <div className="field-full date-time-fields">
               <label>Data<button className="date-picker-trigger" type="button" aria-haspopup="dialog" aria-expanded={datePickerOpen} onClick={() => {

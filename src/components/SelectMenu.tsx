@@ -12,6 +12,7 @@ type SelectMenuProps<T extends string> = {
   onChange: (value: T) => void
   ariaLabel: string
   className?: string
+  disabled?: boolean
 }
 
 type MenuPosition = {
@@ -31,6 +32,7 @@ export default function SelectMenu<T extends string>({
   onChange,
   ariaLabel,
   className = '',
+  disabled = false,
 }: SelectMenuProps<T>) {
   const id = useId()
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -145,6 +147,7 @@ export default function SelectMenu<T extends string>({
         ref={triggerRef}
         className={`select-menu-trigger ${className}`.trim()}
         type="button"
+        disabled={disabled}
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}

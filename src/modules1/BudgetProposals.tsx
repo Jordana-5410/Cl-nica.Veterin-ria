@@ -1,38 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import SelectMenu, { type SelectOption } from '../components/SelectMenu'
 import { demoDataKeys, useDemoData } from '../Data saving/demoPersistence'
-
-type CatalogItem = {
-  id: number
-  name: string
-  description: string
-  price: number
-}
-
-type QuoteLine = CatalogItem & { quantity: number }
-type ProposalStatus = 'Rascunho' | 'Enviada' | 'Aprovada' | 'Recusada'
-type Proposal = {
-  id: number
-  client: string
-  pet: string
-  createdAt: string
-  lines: QuoteLine[]
-  total: number
-  status: ProposalStatus
-}
-
-const catalog: CatalogItem[] = [
-  { id: 1, name: 'Consulta veterinária', description: 'Atendimento clínico', price: 150 },
-  { id: 2, name: 'Vacina V10', description: 'Dose com aplicação', price: 95 },
-  { id: 3, name: 'Exame de sangue', description: 'Hemograma completo', price: 120 },
-  { id: 4, name: 'Banho e tosa', description: 'Porte pequeno', price: 85 },
-  { id: 5, name: 'Retorno', description: 'Reavaliação clínica', price: 70 },
-]
-
-const initialProposals: Proposal[] = [
-  { id: 1001, client: 'Camila Oliveira', pet: 'Luna', createdAt: '15 out. 2026', lines: [{ ...catalog[0], quantity: 1 }, { ...catalog[1], quantity: 1 }], total: 245, status: 'Enviada' },
-  { id: 1002, client: 'Rafael Mendes', pet: 'Thor', createdAt: '14 out. 2026', lines: [{ ...catalog[2], quantity: 1 }], total: 120, status: 'Aprovada' },
-]
+import { initialProposals, proposalCatalog as catalog, type Proposal, type ProposalStatus, type QuoteLine } from './clinicDefaults'
 
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 const proposalStatuses: ProposalStatus[] = ['Rascunho', 'Enviada', 'Aprovada', 'Recusada']

@@ -5,11 +5,15 @@ import ServiceSchedule from './modules1/ServiceSchedule'
 import VaccinationControl from './modules2/VaccinationControl'
 import GroomingSchedule from './modules2/GroomingSchedule'
 import PrescriptionHistory from './modules2/PrescriptionHistory'
+import FilteredReports from './modules3/FilteredReports'
+import RecordVersions from './modules3/RecordVersions'
+import ParticipantRegistry from './modules3/ParticipantRegistry'
 import { clearDemoData } from './Data saving/demoPersistence'
 import './App.css'
 import './modules1/modules.css'
+import './modules3/modules3.css'
 
-type Module = 'overview' | 'budgets' | 'schedule' | 'inventory' | 'vaccinations' | 'grooming' | 'prescriptions'
+type Module = 'overview' | 'budgets' | 'schedule' | 'inventory' | 'vaccinations' | 'grooming' | 'prescriptions' | 'reports' | 'versions' | 'participants'
 
 const moduleLabels: Record<Module, string> = {
   overview: 'Visão geral',
@@ -19,9 +23,12 @@ const moduleLabels: Record<Module, string> = {
   vaccinations: 'Controle de vacinação e retornos',
   grooming: 'Agendamento de banhos e tosas',
   prescriptions: 'Histórico de receitas e prescrições',
+  reports: 'Gerador de Relatórios Filtráveis',
+  versions: 'Controle de Versões de Registros',
+  participants: 'Cadastro de Participantes',
 }
 
-type IconName = 'grid' | 'document' | 'calendar' | 'box' | 'paw' | 'chevron' | 'bell' | 'menu' | 'shield' | 'scissors' | 'prescription'
+type IconName = 'grid' | 'document' | 'calendar' | 'box' | 'paw' | 'chevron' | 'bell' | 'menu' | 'shield' | 'scissors' | 'prescription' | 'chart' | 'history' | 'users'
 
 function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, ReactNode> = {
@@ -36,6 +43,9 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     shield: <><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" /><path d="m9 12 2 2 4-4" /></>,
     scissors: <><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="m8.2 8.2 12 12M14.5 9.5l5.7-5.7M8.2 15.8l4-4" /></>,
     prescription: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6M8 13h8M8 17h5" /><path d="m15 17 2 2 4-4" /></>,
+    chart: <><path d="M4 19V5M4 19h17" /><path d="m7 15 4-4 3 2 6-7" /><path d="M16 6h4v4" /></>,
+    history: <><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></>,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="10" cy="7" r="4" /><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
   }
 
   return (
@@ -71,6 +81,9 @@ function App() {
     { id: 'vaccinations', icon: 'shield' },
     { id: 'grooming', icon: 'scissors' },
     { id: 'prescriptions', icon: 'prescription' },
+    { id: 'reports', icon: 'chart' },
+    { id: 'versions', icon: 'history' },
+    { id: 'participants', icon: 'users' },
   ]
 
   function navigate(module: Module) {
@@ -221,7 +234,7 @@ function App() {
                 <p>Entendemos que cada animal possui sua própria personalidade, suas necessidades e sua história. Por isso, valorizamos um atendimento individualizado, respeitando o tempo de cada paciente e oferecendo aos tutores informações e orientações importantes para que possam cuidar de seus companheiros também em casa.</p>
                 <p>Nosso compromisso é construir uma relação de confiança com cada família que passa por nossas portas, tornando-nos parceiros em todas as etapas da vida dos seus melhores amigos. Queremos estar presentes nos momentos de alegria, acompanhar cada fase do crescimento e contribuir para que cães, gatos e outros companheiros tenham uma vida mais saudável e feliz.</p>
                 <p className="overview-highlight"><strong>Aqui, cada patinha deixa uma marca, cada vida tem um valor e cada gesto de carinho faz a diferença.</strong> Mais do que uma clínica veterinária, queremos ser um lugar onde o cuidado encontra o amor e onde você encontra a tranquilidade de saber que seu melhor amigo está recebendo atenção especial.</p>
-                <p>Seja muito bem-vindo à nossa clínica! Será um prazer fazer parte da história do seu pet e cuidar de quem torna seus dias mais felizes. <span aria-label="patinhas">🐾</span></p>
+                <p>Seja muito bem-vindo à nossa clínica! Será um prazer fazer parte da história do seu pet e cuidar de quem torna seus dias mais felizes.</p>
               </div>
               <div className="overview-image-wrap">
                 <img className="overview-image" src="/Animals.png" alt="Ilustração de vários animais empilhados, incluindo gato, coelho e cachorrinho" />
@@ -245,6 +258,9 @@ function App() {
           <div className="module-view" key={`vaccinations-${demoDataVersion}`} hidden={activeModule !== 'vaccinations'}><VaccinationControl /></div>
           <div className="module-view" key={`grooming-${demoDataVersion}`} hidden={activeModule !== 'grooming'}><GroomingSchedule /></div>
           <div className="module-view" key={`prescriptions-${demoDataVersion}`} hidden={activeModule !== 'prescriptions'}><PrescriptionHistory /></div>
+          <div className="module-view" key={`reports-${demoDataVersion}`} hidden={activeModule !== 'reports'}><FilteredReports onNavigate={navigate} /></div>
+          <div className="module-view" key={`versions-${demoDataVersion}`} hidden={activeModule !== 'versions'}><RecordVersions onNavigate={navigate} /></div>
+          <div className="module-view" key={`participants-${demoDataVersion}`} hidden={activeModule !== 'participants'}><ParticipantRegistry onNavigate={navigate} /></div>
         </div>
       </main>
 
@@ -261,7 +277,7 @@ function App() {
         >
           <h2 id="demo-data-dialog-title">Limpar dados de demonstração?</h2>
           <p id="demo-data-dialog-description">
-            Esta ação removerá os registros salvos de orçamentos, agendamentos, estoque, vacinação, banho e tosa e receitas neste navegador. Os dados não poderão ser recuperados.
+            Esta ação removerá os registros salvos de orçamentos, agendamentos, estoque, vacinação, banho e tosa, receitas, versões e participantes neste navegador. Os dados não poderão ser recuperados.
           </p>
           {clearDataError && <p className="demo-data-dialog-error" role="alert">{clearDataError}</p>}
           <div className="demo-data-dialog-actions">
@@ -285,6 +301,9 @@ function getSubtitle(module: Module) {
   if (module === 'vaccinations') return 'Registre imunizações e acompanhe o histórico sanitário e os retornos.'
   if (module === 'grooming') return 'Organize os horários de banho e tosa, profissionais e porte dos pets.'
   if (module === 'prescriptions') return 'Emita registros e consulte o histórico de receitas veterinárias.'
+  if (module === 'reports') return 'Filtre registros de vários módulos e exporte uma visão tabular da clínica.'
+  if (module === 'versions') return 'Mantenha revisões numeradas e consulte o histórico de registros clínicos.'
+  if (module === 'participants') return 'Cadastre tutores por interesse e acompanhe atividades relacionadas.'
   return 'Sua clínica organizada em um só lugar.'
 }
 

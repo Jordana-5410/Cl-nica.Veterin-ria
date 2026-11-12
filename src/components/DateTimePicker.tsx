@@ -18,10 +18,11 @@ type DatePickerProps = {
   value: string
   onChange: (value: string) => void
   min?: string
+  max?: string
   clearable?: boolean
 }
 
-export function DatePicker({ label, value, onChange, min, clearable = false }: DatePickerProps) {
+export function DatePicker({ label, value, onChange, min, max, clearable = false }: DatePickerProps) {
   const id = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [open, setOpen] = useState(false)
@@ -76,7 +77,7 @@ export function DatePicker({ label, value, onChange, min, clearable = false }: D
               const month = String(calendarMonth.getMonth() + 1).padStart(2, '0')
               const selectedDate = `${year}-${month}-${String(day).padStart(2, '0')}`
               const selected = selectedDate === value
-              const disabled = Boolean(min && selectedDate < min)
+              const disabled = Boolean((min && selectedDate < min) || (max && selectedDate > max))
               return (
                 <button
                   className={`date-picker-day${selected ? ' date-picker-day--selected' : ''}`}

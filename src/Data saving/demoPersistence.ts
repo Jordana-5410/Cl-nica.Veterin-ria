@@ -7,6 +7,8 @@ export const demoDataKeys = {
   vaccinations: 'zenvet.demo.vaccinations.v1',
   grooming: 'zenvet.demo.grooming.v1',
   prescriptions: 'zenvet.demo.prescriptions.v1',
+  versions: 'zenvet.demo.record-versions.v1',
+  participants: 'zenvet.demo.participants.v1',
 } as const
 
 type PersistedState<T> = {
@@ -83,6 +85,8 @@ export function clearDemoData(): void {
     [demoDataKeys.vaccinations, []],
     [demoDataKeys.grooming, []],
     [demoDataKeys.prescriptions, []],
+    [demoDataKeys.versions, []],
+    [demoDataKeys.participants, []],
   ] as const
 
   try {

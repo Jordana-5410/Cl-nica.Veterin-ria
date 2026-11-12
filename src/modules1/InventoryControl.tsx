@@ -1,33 +1,12 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import SelectMenu, { type SelectOption } from '../components/SelectMenu'
 import { demoDataKeys, useDemoData } from '../Data saving/demoPersistence'
-
-type StockItem = {
-  id: number
-  name: string
-  category: string
-  quantity: number
-  unit: string
-  minimum: number
-}
-
-type StockMovement = {
-  id: number
-  itemName: string
-  kind: 'Entrada' | 'Saída'
-  quantity: number
-  happenedAt: string
-}
-
-const initialItems: StockItem[] = [
-  { id: 1, name: 'Vacina V10', category: 'Medicamentos', quantity: 8, unit: 'doses', minimum: 10 },
-  { id: 2, name: 'Antipulgas NexGard', category: 'Medicamentos', quantity: 24, unit: 'unidades', minimum: 8 },
-  { id: 3, name: 'Shampoo hipoalergênico', category: 'Higiene e estética', quantity: 5, unit: 'frascos', minimum: 6 },
-  { id: 4, name: 'Ração Recovery', category: 'Alimentação', quantity: 3, unit: 'latas', minimum: 5 },
-  { id: 5, name: 'Seringas 3 ml', category: 'Materiais clínicos', quantity: 42, unit: 'unidades', minimum: 15 },
-]
+import { initialItems, type StockItem, type StockMovement } from './clinicDefaults'
 
 const categories = ['Medicamentos', 'Higiene e estética', 'Alimentação', 'Materiais clínicos']
+const otherItemValue = '__other_item__'
+const otherUnitValue = '__other_unit__'
+const commonUnits = ['unidades', 'doses', 'frascos', 'caixas', 'pacotes', 'ml', 'g']
 const categoryOptions: SelectOption<string>[] = categories.map((category) => ({ value: category, label: category }))
 const categoryFilterOptions: SelectOption<string>[] = [{ value: 'Todas', label: 'Todas' }, ...categoryOptions]
 
@@ -78,9 +57,11 @@ export default function InventoryControl() {
   )
   const { items, movements } = inventory
   const [categoryFilter, setCategoryFilter] = useState('Todas')
-  const [itemName, setItemName] = useState('')
+  const [itemNameSelection, setItemNameSelection] = useState('')
+  const [customItemName, setCustomItemName] = useState('')
   const [itemCategory, setItemCategory] = useState(categories[0])
-  const [itemUnit, setItemUnit] = useState('unidades')
+  const [itemUnitSelection, setItemUnitSelection] = useState('unidades')
+  const [customItemUnit, setCustomItemUnit] = useState('')
   const [itemQuantity, setItemQuantity] = useState('0')
   const [itemMinimum, setItemMinimum] = useState('5')
   const [movementQuantities, setMovementQuantities] = useState<Record<number, string>>({})
@@ -90,6 +71,19 @@ export default function InventoryControl() {
     () => items.filter((item) => categoryFilter === 'Todas' || item.category === categoryFilter),
     [categoryFilter, items],
   )
+  const itemNameOptions = useMemo<SelectOption<string>[]>(() => [
+    { value: '', label: 'Selecione um item' },
+    ...Array.from(new Set(items.map((item) => item.name)))
+      .sort((first, second) => first.localeCompare(second, 'pt-BR'))
+      .map((name) => ({ value: name, label: name })),
+    { value: otherItemValue, label: 'Outro item…' },
+  ], [items])
+  const itemUnitOptions = useMemo<SelectOption<string>[]>(() => [
+    ...Array.from(new Set([...commonUnits, ...items.map((item) => item.unit)]))
+      .sort((first, second) => first.localeCompare(second, 'pt-BR'))
+      .map((unit) => ({ value: unit, label: unit })),
+    { value: otherUnitValue, label: 'Outra unidade…' },
+  ], [items])
 
   function updateInventory(update: (current: typeof inventory) => typeof inventory) {
     setInventory(update)
@@ -99,16 +93,24 @@ export default function InventoryControl() {
     event.preventDefault()
     const quantity = Number(itemQuantity)
     const minimum = Number(itemMinimum)
+    const name = itemNameSelection === otherItemValue ? customItemName.trim() : itemNameSelection
+    const unit = itemUnitSelection === otherUnitValue ? customItemUnit.trim() : itemUnitSelection
+    if (!name || !unit) {
+      setErrorMessage('Selecione ou informe o nome do item e a unidade de medida.')
+      return
+    }
     if (!Number.isInteger(quantity) || quantity < 0 || !Number.isInteger(minimum) || minimum < 0) {
       setErrorMessage('Informe quantidades inteiras iguais ou maiores que zero.')
       return
     }
     updateInventory((current) => ({
       ...current,
-      items: [{ id: Date.now(), name: itemName.trim(), category: itemCategory, quantity, unit: itemUnit.trim(), minimum }, ...current.items],
+      items: [{ id: Date.now(), name, category: itemCategory, quantity, unit, minimum }, ...current.items],
     }))
-    setItemName('')
-    setItemUnit('unidades')
+    setItemNameSelection('')
+    setCustomItemName('')
+    setItemUnitSelection('unidades')
+    setCustomItemUnit('')
     setItemQuantity('0')
     setItemMinimum('5')
     setErrorMessage('')
@@ -141,9 +143,23 @@ export default function InventoryControl() {
         <div className="module-card-heading"><div><h2>Cadastrar insumo</h2><p>Defina a categoria, quantidade inicial e o nível mínimo.</p></div></div>
         <form className="module-form" onSubmit={addItem}>
           <div className="module-form-grid">
-            <label>Nome do item<input required value={itemName} onChange={(event) => setItemName(event.target.value)} placeholder="Ex.: Luvas descartáveis" /></label>
+            <label>Nome do item<SelectMenu ariaLabel="Nome do item em estoque" value={itemNameSelection} options={itemNameOptions} onChange={(value) => {
+              setItemNameSelection(value)
+              setErrorMessage('')
+            }} /></label>
+            {itemNameSelection === otherItemValue && <label>Outro item<input required value={customItemName} onChange={(event) => {
+              setCustomItemName(event.target.value)
+              setErrorMessage('')
+            }} placeholder="Digite o nome do insumo" /></label>}
             <label>Categoria<SelectMenu ariaLabel="Categoria do item" value={itemCategory} options={categoryOptions} onChange={setItemCategory} /></label>
-            <label>Unidade de medida<input required value={itemUnit} onChange={(event) => setItemUnit(event.target.value)} placeholder="unidades" /></label>
+            <label>Unidade de medida<SelectMenu ariaLabel="Unidade de medida" value={itemUnitSelection} options={itemUnitOptions} onChange={(value) => {
+              setItemUnitSelection(value)
+              setErrorMessage('')
+            }} /></label>
+            {itemUnitSelection === otherUnitValue && <label>Outra unidade<input required value={customItemUnit} onChange={(event) => {
+              setCustomItemUnit(event.target.value)
+              setErrorMessage('')
+            }} placeholder="Digite a unidade" /></label>}
             <label>Quantidade inicial<input required type="number" min="0" step="1" value={itemQuantity} onChange={(event) => setItemQuantity(event.target.value)} /></label>
             <label>Nível mínimo<input required type="number" min="0" step="1" value={itemMinimum} onChange={(event) => setItemMinimum(event.target.value)} /></label>
           </div>

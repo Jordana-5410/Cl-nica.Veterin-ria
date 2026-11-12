@@ -33,6 +33,28 @@ const vaccinationFilters: SelectOption<string>[] = [
   { value: 'Em dia', label: 'Em dia' },
   { value: 'Retorno pendente', label: 'Retorno pendente' },
 ]
+const otherBatchValue = '__other_batch__'
+const otherNotesValue = '__other_notes__'
+const suggestedBatches = [
+  'LOTE-2026-001',
+  'LOTE-2026-002',
+  'LOTE-2026-003',
+  'LOTE-2026-004',
+  'LOTE-2026-005',
+  'LOTE-2026-006',
+]
+const suggestedNotes = [
+  'Cadastro realizado no sistema.',
+  'Informações registradas para consulta.',
+  'Dados conferidos no momento do cadastro.',
+  'Registro atualizado.',
+  'Informações complementares disponíveis.',
+  'Atendimento registrado no histórico.',
+  'Aguardando preenchimento de informações adicionais.',
+  'Observação inserida pelo profissional responsável.',
+  'Registro vinculado ao cadastro do animal.',
+  'Sem observações adicionais.',
+]
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -74,8 +96,10 @@ export default function VaccinationControl() {
   const [appliedAt, setAppliedAt] = useState(() => localDateInputValue(new Date()))
   const [returnAt, setReturnAt] = useState('')
   const [veterinarian, setVeterinarian] = useState(veterinarianOptions[0].value)
-  const [batch, setBatch] = useState('')
-  const [notes, setNotes] = useState('')
+  const [batchSelection, setBatchSelection] = useState('')
+  const [customBatch, setCustomBatch] = useState('')
+  const [notesSelection, setNotesSelection] = useState('')
+  const [customNotes, setCustomNotes] = useState('')
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('Todos')
   const [today] = useState(() => localDateInputValue(new Date()))
@@ -86,9 +110,25 @@ export default function VaccinationControl() {
       || (filter === 'Retorno pendente' ? Boolean(record.returnAt && record.returnAt < today) : !record.returnAt || record.returnAt >= today))
     .sort((first, second) => second.appliedAt.localeCompare(first.appliedAt)),
   [filter, records, search, today])
+  const batchOptions = useMemo<SelectOption<string>[]>(() => [
+    { value: '', label: 'Selecione um lote' },
+    ...Array.from(new Set([...suggestedBatches, ...records.map((record) => record.batch).filter(Boolean)]))
+      .sort((first, second) => first.localeCompare(second, 'pt-BR'))
+      .map((batch) => ({ value: batch, label: batch })),
+    { value: otherBatchValue, label: 'Outro lote…' },
+  ], [records])
+  const notesOptions = useMemo<SelectOption<string>[]>(() => [
+    { value: '', label: 'Sem observações' },
+    ...Array.from(new Set([...suggestedNotes, ...records.map((record) => record.notes).filter(Boolean)]))
+      .sort((first, second) => first.localeCompare(second, 'pt-BR'))
+      .map((note) => ({ value: note, label: note })),
+    { value: otherNotesValue, label: 'Outra observação…' },
+  ], [records])
 
   function addRecord(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const batch = batchSelection === otherBatchValue ? customBatch.trim() : batchSelection
+    const notes = notesSelection === otherNotesValue ? customNotes.trim() : notesSelection
     setRecords((current) => [{
       id: Date.now(),
       pet: pet.trim(),
@@ -97,8 +137,8 @@ export default function VaccinationControl() {
       appliedAt,
       returnAt,
       veterinarian: veterinarian.trim(),
-      batch: batch.trim(),
-      notes: notes.trim(),
+      batch,
+      notes,
     }, ...current])
     setPet('')
     setGuardian('')
@@ -106,8 +146,10 @@ export default function VaccinationControl() {
     setAppliedAt(localDateInputValue(new Date()))
     setReturnAt('')
     setVeterinarian(veterinarianOptions[0].value)
-    setBatch('')
-    setNotes('')
+    setBatchSelection('')
+    setCustomBatch('')
+    setNotesSelection('')
+    setCustomNotes('')
   }
 
   function removeRecord(id: number) {
@@ -132,8 +174,16 @@ export default function VaccinationControl() {
             }} />
             <DatePicker label="Retorno recomendado" value={returnAt} min={appliedAt} clearable onChange={setReturnAt} />
             <label>Médico-veterinário<SelectMenu ariaLabel="Médico-veterinário responsável pela vacinação" value={veterinarian} options={veterinarianOptions} onChange={setVeterinarian} /></label>
-            <label>Lote<input value={batch} onChange={(event) => setBatch(event.target.value)} placeholder="Identificação do lote" /></label>
-            <label>Observações<input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Informações adicionais" /></label>
+            <label>Lote<SelectMenu ariaLabel="Lote da vacina" value={batchSelection} options={batchOptions} onChange={(value) => {
+              setBatchSelection(value)
+              if (value !== otherBatchValue) setCustomBatch('')
+            }} /></label>
+            {batchSelection === otherBatchValue && <label>Outro lote<input value={customBatch} onChange={(event) => setCustomBatch(event.target.value)} placeholder="Informe o lote" /></label>}
+            <label>Observações<SelectMenu ariaLabel="Observações da imunização" value={notesSelection} options={notesOptions} onChange={(value) => {
+              setNotesSelection(value)
+              if (value !== otherNotesValue) setCustomNotes('')
+            }} /></label>
+            {notesSelection === otherNotesValue && <label>Outra observação<input value={customNotes} onChange={(event) => setCustomNotes(event.target.value)} placeholder="Digite uma observação" /></label>}
           </div>
           <div className="module-form-footer"><button className="module-button module-button--primary" type="submit">Salvar imunização</button></div>
         </form>
